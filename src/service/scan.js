@@ -1,6 +1,6 @@
-const XLSX = require("xlsx");
-const fs = require("node:fs");
-const path = require("node:path");
+import * as XLSX from "xlsx";
+import path from "node:path";
+import fs from "node:fs";
 
 function getAllCsv(root) {
 	const files = fs.readdirSync(root);
@@ -27,6 +27,11 @@ export function scan(win, folder, sns, addressList) {
 			text,
 		});
 	};
+
+	if (!folder) {
+		log("没有选择保存地址", "error");
+		return;
+	}
 	log("开始扫描");
 	let targetFiles = [];
 	for (const address of addressList) {
@@ -34,6 +39,10 @@ export function scan(win, folder, sns, addressList) {
 		targetFiles = targetFiles.concat(files);
 	}
 	log("扫描结束，共有" + targetFiles.length + "个文件");
+	if (targetFiles.length == 0) {
+		log("没有找到任何文件", "error");
+		return;
+	}
 
 	const aoj = [];
 	for (let i = 0; i < targetFiles.length; i++) {
@@ -52,9 +61,16 @@ export function scan(win, folder, sns, addressList) {
 		}
 	}
 	log("分析完成，开始生成文件");
+	const date = new Date();
 	const wb = XLSX.utils.book_new();
 	const sheet = XLSX.utils.json_to_sheet(aoj);
 	XLSX.utils.book_append_sheet(wb, sheet, "Sheet1");
-	XLSX.writeFile(wb, path.resolve(folder, "aoj.csv"));
+	XLSX.writeFile(
+		wb,
+		path.resolve(
+			folder,
+			`dmt-${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}.csv`
+		)
+	);
 	log("文件生成完成", "done");
 }

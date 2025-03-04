@@ -122,7 +122,7 @@ export default function App() {
 									</List.Item>
 								)}
 								style={{
-									maxHeight: 160,
+									maxHeight: 180,
 									overflowY: "auto",
 								}}
 							/>
@@ -167,7 +167,7 @@ export default function App() {
 									</List.Item>
 								)}
 								style={{
-									maxHeight: 160,
+									maxHeight: 180,
 									overflowY: "auto",
 								}}
 							/>
@@ -187,7 +187,11 @@ export default function App() {
 								</div>
 							}
 						>
-							<div className="folder">{folder || "没有选择保存地址"}</div>
+							<div className="folder">
+								{folder || (
+									<span style={{ opacity: 0.5 }}>* 没有选择保存地址</span>
+								)}
+							</div>
 						</Form.Item>
 						<Form.Item label={null}>
 							<div style={{ textAlign: "center" }}>
@@ -205,7 +209,7 @@ export default function App() {
 								{logs.map((item) => (
 									<div key={item.id} className="log-item">
 										<span className="time">{item.time}</span>：
-										<span>{item.text}</span>
+										<span className={"log-" + item.type}>{item.text}</span>
 										{item.type == "done" && (
 											<a
 												onClick={() =>

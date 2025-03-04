@@ -50,6 +50,12 @@
 	color: #fff;
 	padding: 8px;
 }
+.log-error {
+	color: #f5222d;
+}
+.log-success {
+	color: #52c41a;
+}
 .sn,
 .folder {
 	word-wrap: break-word;
