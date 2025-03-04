@@ -124,6 +124,7 @@ export default function App() {
 								style={{
 									maxHeight: 180,
 									overflowY: "auto",
+									backgroundColor: "#fff",
 								}}
 							/>
 						</Form.Item>
@@ -169,6 +170,7 @@ export default function App() {
 								style={{
 									maxHeight: 180,
 									overflowY: "auto",
+									backgroundColor: "#fff",
 								}}
 							/>
 						</Form.Item>

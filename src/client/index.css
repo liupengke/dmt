@@ -3,4 +3,15 @@ body {
 		Arial, sans-serif;
 	margin: auto;
 	-webkit-font-smoothing: antialiased;
+	background: linear-gradient(
+		45deg,
+		#fff 20%,
+		#e6e8fc 60%,
+		#edf6fd 80%,
+		#fff 90%
+	);
+}
+html,
+body {
+	height: 100%;
 }
