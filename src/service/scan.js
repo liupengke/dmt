@@ -17,8 +17,18 @@ function getAllCsv(root) {
 	}
 	return ret;
 }
-
-export function scan(win, folder, sns, addressList) {
+function checkFolder(folder) {
+	return new Promise((resolve, reject) => {
+		fs.access(folder, fs.constants.F_OK, (err) => {
+			if (err) resolve(false);
+			else resolve(true);
+		});
+	});
+}
+function sleep(ms) {
+	return new Promise((resolve) => setTimeout(resolve, ms));
+}
+export async function scan(win, folder, sns, addressList) {
 	const log = function (text, type = "info") {
 		const date = new Date();
 		win.webContents.send("scanLog", {
@@ -29,10 +39,19 @@ export function scan(win, folder, sns, addressList) {
 	};
 
 	if (!folder) {
-		log("没有选择保存地址", "error");
+		log("没有选择保存地址，程序结束", "error");
 		return;
 	}
-	log("开始扫描");
+	log("开始检查文件夹是否可以访问");
+	for (const address of [...addressList, folder]) {
+		const canAccess = await checkFolder(address);
+		if (!canAccess) {
+			log(address + " 文件夹无法访问，程序结束", "error");
+			return;
+		}
+	}
+	log("文件夹检测完毕，都可以访问");
+	log("开始扫描并发现csv数据文件");
 	let targetFiles = [];
 	for (const address of addressList) {
 		const files = getAllCsv(address);
@@ -40,14 +59,14 @@ export function scan(win, folder, sns, addressList) {
 	}
 	log("扫描结束，共有" + targetFiles.length + "个文件");
 	if (targetFiles.length == 0) {
-		log("没有找到任何文件", "error");
+		log("没有找到任何文件，程序结束", "error");
 		return;
 	}
 
 	const aoj = [];
 	for (let i = 0; i < targetFiles.length; i++) {
 		if (i % 10 == 0) {
-			log(`正在分析第 ${i + 1} 个文件`);
+			log(`文件处理进度 ${parseInt(((i + 1) * 100) / targetFiles.length)}%`);
 		}
 		const wb = XLSX.readFile(targetFiles[i]);
 		const sheetName = wb.SheetNames[0];
@@ -59,6 +78,7 @@ export function scan(win, folder, sns, addressList) {
 				aoj.push(r);
 			}
 		}
+		await sleep(100);
 	}
 	log("分析完成，开始生成文件");
 	const date = new Date();
@@ -69,7 +89,9 @@ export function scan(win, folder, sns, addressList) {
 		wb,
 		path.resolve(
 			folder,
-			`dmt-${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}.csv`
+			`dmt-out-${date.getFullYear()}-${
+				date.getMonth() + 1
+			}-${date.getDate()}.csv`
 		)
 	);
 	log("文件生成完成", "done");

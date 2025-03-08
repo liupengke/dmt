@@ -41,6 +41,11 @@ export default function App() {
 		setFolder(data.folder || "");
 		window.dmt.on("scanLog", appendLog);
 	}, []);
+	useEffect(() => {
+		if (drawerData.visible) {
+			form.setFieldsValue({ text: drawerData.text });
+		}
+	}, [drawerData.visible]);
 
 	const saveData = (type, value) => {
 		localStorage.setItem(
@@ -132,6 +137,18 @@ export default function App() {
 							label={
 								<div>
 									扫描文件夹
+									<Button
+										type="link"
+										icon={<EditOutlined />}
+										size="small"
+										onClick={() =>
+											setDrawerData({
+												visible: true,
+												type: "address",
+												text: addressList.join("\n"),
+											})
+										}
+									/>
 									<Button
 										type="link"
 										icon={<FolderAddOutlined />}
@@ -231,35 +248,30 @@ export default function App() {
 
 			<Drawer
 				title={
-					"修改" + drawerData.type == "address" ? "网络盘地址" : "晶棒编号"
+					"修改" + (drawerData.type == "address" ? "网络盘地址" : "晶棒编号")
 				}
 				open={drawerData.visible}
 				onClose={() => setDrawerData({ visible: false })}
+				destroyOnClose
 			>
-				{drawerData.visible && (
-					<Form
-						form={form}
-						onFinish={handleEdit}
-						initialValues={{ text: drawerData.text }}
-					>
-						<Form.Item label={null} name="text">
-							<Input.TextArea
-								value={drawerData.text}
-								rows={10}
-								placeholder={
-									drawerData.type == "address"
-										? "添加网络盘地址，每行一个"
-										: "添加晶棒编号，每行一个"
-								}
-							/>
-						</Form.Item>
-						<Form.Item label={null}>
-							<Button type="primary" htmlType="submit">
-								保存
-							</Button>
-						</Form.Item>
-					</Form>
-				)}
+				<Form form={form} onFinish={handleEdit}>
+					<Form.Item label={null} name="text">
+						<Input.TextArea
+							value={drawerData.text}
+							rows={10}
+							placeholder={
+								drawerData.type == "address"
+									? "添加网络盘地址，每行一个"
+									: "添加晶棒编号，每行一个"
+							}
+						/>
+					</Form.Item>
+					<Form.Item label={null}>
+						<Button type="primary" htmlType="submit">
+							保存
+						</Button>
+					</Form.Item>
+				</Form>
 			</Drawer>
 		</div>
 	);
