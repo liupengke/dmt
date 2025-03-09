@@ -14,10 +14,15 @@ const createWindow = () => {
 	mainWindow = new BrowserWindow({
 		width: 960,
 		height: 720,
+		icon: path.join(__dirname, "assets/logo.png"), // 主窗口图标
 		webPreferences: {
 			preload: path.join(__dirname, "preload.js"),
 		},
 	});
+
+	if (process.platform === "darwin") {
+		app.dock.setIcon(path.join(__dirname, "assets/logo.png"));
+	}
 
 	// and load the index.html of the app.
 	if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {

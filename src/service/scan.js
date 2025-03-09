@@ -62,13 +62,15 @@ export async function scan(win, folder, sns, addressList) {
 		log("没有找到任何文件，程序结束", "error");
 		return;
 	}
-
+	log("开始分析文件，找到符合要求的晶棒数据");
 	const aoj = [];
 	for (let i = 0; i < targetFiles.length; i++) {
 		if (i % 10 == 0) {
-			log(`文件处理进度 ${parseInt(((i + 1) * 100) / targetFiles.length)}%`);
+			log(`文件分析进度 ${parseInt(((i + 1) * 100) / targetFiles.length)}%`);
 		}
-		const wb = XLSX.readFile(targetFiles[i]);
+		// const buffer = fs.readFileSync(targetFiles[i], "utf-8");
+		const buffer = fs.readFileSync(targetFiles[i]);
+		const wb = XLSX.read(buffer, { type: "buffer" });
 		const sheetName = wb.SheetNames[0];
 		const sheet = wb.Sheets[sheetName];
 		const sheetData = XLSX.utils.sheet_to_json(sheet);
@@ -80,19 +82,39 @@ export async function scan(win, folder, sns, addressList) {
 		}
 		await sleep(100);
 	}
-	log("分析完成，开始生成文件");
+
+	log("文件分析进度100%。开始输出结果");
 	const date = new Date();
 	const wb = XLSX.utils.book_new();
 	const sheet = XLSX.utils.json_to_sheet(aoj);
 	XLSX.utils.book_append_sheet(wb, sheet, "Sheet1");
-	XLSX.writeFile(
-		wb,
-		path.resolve(
-			folder,
-			`dmt-out-${date.getFullYear()}-${
-				date.getMonth() + 1
-			}-${date.getDate()}.csv`
-		)
-	);
+	try {
+		// XLSX.writeFile(
+		// 	wb,
+		// 	path.resolve(
+		// 		folder,
+		// 		`dmt-out-${date.getFullYear()}-${
+		// 			date.getMonth() + 1
+		// 		}-${date.getDate()}.csv`
+		// 	)
+		// );
+		const outputBuffer = XLSX.write(wb, {
+			bookType: "csv",
+			type: "buffer",
+		});
+		fs.writeFileSync(
+			path.resolve(
+				folder,
+				`dmt-out-${date.getFullYear()}-${
+					date.getMonth() + 1
+				}-${date.getDate()}.csv`
+			),
+			outputBuffer
+		);
+	} catch (e) {
+		console.log(e);
+		log("文件生成失败，程序结束", "error");
+		return;
+	}
 	log("文件生成完成", "done");
 }
