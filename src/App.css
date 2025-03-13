@@ -56,8 +56,7 @@
 .log-success {
 	color: #52c41a;
 }
-.sn,
-.folder {
+.sn {
 	word-wrap: break-word;
 	word-break: break-all;
 }

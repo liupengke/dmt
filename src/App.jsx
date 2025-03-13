@@ -4,7 +4,6 @@ import {
 	FileSearchOutlined,
 	EditOutlined,
 	FolderOpenOutlined,
-	FolderAddOutlined,
 	DeleteOutlined,
 } from "@ant-design/icons";
 import { useState, useEffect } from "react";
@@ -68,19 +67,7 @@ export default function App() {
 		drawerData.type == "sn" ? setSns(list) : setAddressList(list);
 		setDrawerData({ visible: false });
 	};
-	const changeDirectory = async () => {
-		const folder = await window.dmt.invoke("getFolder");
-		if (!folder || folder.length < 1) return;
-		saveData("folder", folder[0]);
-		setFolder(folder[0]);
-	};
-	const addScanFolder = async () => {
-		const folder = await window.dmt.invoke("getFolder");
-		if (!folder || folder.length < 1) return;
-		const list = addressList.concat(folder[0]);
-		saveData("address", list);
-		setAddressList(list);
-	};
+
 	const startScan = () => {
 		window.dmt.invoke("scan", {
 			folder: folder,
@@ -95,7 +82,7 @@ export default function App() {
 			<hr style={{ opacity: 0.2 }} />
 			<div className="panel">
 				<div className="left-panel">
-					<Form layout="vertical">
+					<Form layout="vertical" onFinish={startScan}>
 						<Form.Item
 							label={
 								<div>
@@ -149,12 +136,6 @@ export default function App() {
 											})
 										}
 									/>
-									<Button
-										type="link"
-										icon={<FolderAddOutlined />}
-										size="small"
-										onClick={addScanFolder}
-									/>
 								</div>
 							}
 						>
@@ -191,30 +172,12 @@ export default function App() {
 								}}
 							/>
 						</Form.Item>
-						<Form.Item
-							label={
-								<div>
-									保存路径{" "}
-									<Button
-										size="small"
-										icon={<FolderOpenOutlined />}
-										type="dashed"
-										onClick={changeDirectory}
-									>
-										更换地址
-									</Button>
-								</div>
-							}
-						>
-							<div className="folder">
-								{folder || (
-									<span style={{ opacity: 0.5 }}>* 没有选择保存地址</span>
-								)}
-							</div>
+						<Form.Item label="保存路径" name="folder">
+							<Input placeholder="请输入结果要保存的文件夹" />
 						</Form.Item>
 						<Form.Item label={null}>
 							<div style={{ textAlign: "center" }}>
-								<Button type="primary" size="large" onClick={startScan}>
+								<Button type="primary" size="large" htmlType="submit">
 									<FileSearchOutlined /> 扫描并整合数据
 								</Button>
 							</div>
