@@ -1,6 +1,7 @@
-import * as XLSX from "xlsx";
 import path from "node:path";
 import fs from "node:fs";
+import CsvFile, { headers } from "./CsvFile";
+import { parseFile } from "@fast-csv/parse";
 
 function getAllCsv(root) {
 	const files = fs.readdirSync(root);
@@ -27,6 +28,20 @@ function checkFolder(folder) {
 }
 function sleep(ms) {
 	return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function handleCsv(targetFile, csvFile, sns) {
+	return new Promise((resolve, reject) => {
+		parseFile(targetFile, { headers })
+			.on("error", (error) => reject(error))
+			.on("data", (r) => {
+				const sn = r["晶棒编号"];
+				if (sns.includes(sn)) {
+					csvFile.append([r]);
+				}
+			})
+			.on("end", () => resolve());
+	});
 }
 export async function scan(win, folder, sns, addressList) {
 	const log = function (text, type = "info") {
@@ -63,58 +78,26 @@ export async function scan(win, folder, sns, addressList) {
 		return;
 	}
 	log("开始分析文件，找到符合要求的晶棒数据");
-	const aoj = [];
+	const date = new Date();
+	const csvFile = new CsvFile({
+		path: path.resolve(
+			folder,
+			`dmt-out-${date.getFullYear()}-${
+				date.getMonth() + 1
+			}-${date.getDate()}.csv`
+		),
+	});
 	for (let i = 0; i < targetFiles.length; i++) {
 		if (i % 10 == 0) {
 			log(`文件分析进度 ${parseInt(((i + 1) * 100) / targetFiles.length)}%`);
 		}
-		// const buffer = fs.readFileSync(targetFiles[i], "utf-8");
-		const buffer = fs.readFileSync(targetFiles[i]);
-		const wb = XLSX.read(buffer, { type: "buffer" });
-		const sheetName = wb.SheetNames[0];
-		const sheet = wb.Sheets[sheetName];
-		const sheetData = XLSX.utils.sheet_to_json(sheet);
-		for (const r of sheetData) {
-			const sn = r["晶棒编号"];
-			if (sns.includes(sn)) {
-				aoj.push(r);
-			}
+		try {
+			await handleCsv(targetFiles[i], csvFile, sns);
+		} catch (e) {
+			console.log(e);
 		}
 		await sleep(100);
 	}
 
-	log("文件分析进度100%。开始输出结果");
-	const date = new Date();
-	const wb = XLSX.utils.book_new();
-	const sheet = XLSX.utils.json_to_sheet(aoj);
-	XLSX.utils.book_append_sheet(wb, sheet, "Sheet1");
-	try {
-		// XLSX.writeFile(
-		// 	wb,
-		// 	path.resolve(
-		// 		folder,
-		// 		`dmt-out-${date.getFullYear()}-${
-		// 			date.getMonth() + 1
-		// 		}-${date.getDate()}.csv`
-		// 	)
-		// );
-		const outputBuffer = XLSX.write(wb, {
-			bookType: "csv",
-			type: "buffer",
-		});
-		fs.writeFileSync(
-			path.resolve(
-				folder,
-				`dmt-out-${date.getFullYear()}-${
-					date.getMonth() + 1
-				}-${date.getDate()}.csv`
-			),
-			outputBuffer
-		);
-	} catch (e) {
-		console.log(e);
-		log("文件生成失败，程序结束", "error");
-		return;
-	}
 	log("文件生成完成", "done");
 }
