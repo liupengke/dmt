@@ -92,6 +92,7 @@ export async function scan(win, folder, sns, addressList) {
 			log(`文件分析进度 ${parseInt(((i + 1) * 100) / targetFiles.length)}%`);
 		}
 		try {
+			log(`开始处理文件 ${targetFiles[i]}`);
 			await handleCsv(targetFiles[i], csvFile, sns);
 		} catch (e) {
 			console.log(e);
