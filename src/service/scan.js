@@ -32,7 +32,7 @@ function sleep(ms) {
 
 function handleCsv(targetFile, csvFile, sns) {
 	return new Promise((resolve, reject) => {
-		parseFile(targetFile, { headers })
+		parseFile(targetFile, { headers, strictColumnHandling: false })
 			.on("error", (error) => reject(error))
 			.on("data", (r) => {
 				const sn = r["晶棒编号"];
@@ -92,6 +92,7 @@ export async function scan(win, folder, sns, addressList) {
 			log(`文件分析进度 ${parseInt(((i + 1) * 100) / targetFiles.length)}%`);
 		}
 		try {
+			console.log(targetFiles[i]);
 			log(`开始处理文件 ${targetFiles[i]}`);
 			await handleCsv(targetFiles[i], csvFile, sns);
 		} catch (e) {
